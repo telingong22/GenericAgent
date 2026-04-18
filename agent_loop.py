@@ -42,7 +42,8 @@ def get_pretty_json(data):
         data = data.copy(); data["script"] = data["script"].replace("; ", ";\n  ")
     return json.dumps(data, indent=2, ensure_ascii=False).replace('\\n', '\n')
 
-def agent_runner_loop(client, system_prompt, user_input, handler, tools_schema, max_turns=60, verbose=True, initial_user_content=None):
+# Increased default max_turns from 60 to 100 — I kept hitting the limit on longer tasks
+def agent_runner_loop(client, system_prompt, user_input, handler, tools_schema, max_turns=100, verbose=True, initial_user_content=None):
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": initial_user_content if initial_user_content is not None else user_input}
