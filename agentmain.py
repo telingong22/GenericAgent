@@ -37,9 +37,11 @@ if not os.path.exists(cdp_cfg):
 
 # Use full date + time in system prompt so the agent knows the current time too
 # Also include timezone so the agent doesn't get confused across DST changes
+# Note: strftime('%Z') can return empty string on some platforms; fall back to UTC offset
 def get_system_prompt():
     with open(os.path.join(script_dir, f'assets/sys_prompt{lang_suffix}.txt'), 'r', encoding='utf-8') as f: prompt = f.read()
-    prompt += f"\nToday: {time.strftime('%Y-%m-%d %a %H:%M %Z')}\n"
+    tz_label = time.strftime('%Z') or time.strftime('%z') or 'UTC'
+    prompt += f"\nToday: {time.strftime('%Y-%m-%d %a %H:%M')} {tz_label}\n"
     prompt += get_global_memory()
     return prompt
 
@@ -50,6 +52,4 @@ class GeneraticAgent:
         from llmcore import mykeys
         llm_sessions = []
         for k, cfg in mykeys.items():
-            if not any(x in k for x in ['api', 'config', 'cookie']): continue
-            try:
-                if 'native' in k and 'clau
+            if not any(x in k for x in ['api', 'config', 
