@@ -42,3 +42,7 @@ If your skill only makes sense for a specific workflow, it's a marketplace candi
   4. On failure, can I quickly locate the responsible module?
 - [ ] Net line count: ideally negative or zero for refactors
 - [ ] No unnecessary dependencies added
+
+---
+
+> **Personal fork note:** I'm using this primarily for local automation experiments. I won't be opening upstream PRs unless I find a genuinely universal improvement.
