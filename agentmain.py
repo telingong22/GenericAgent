@@ -36,9 +36,10 @@ if not os.path.exists(cdp_cfg):
     except Exception as e: print(f'[WARN] CDP config init failed: {e} — advanced web features (tmwebdriver) will be unavailable.')
 
 # Use full date + time in system prompt so the agent knows the current time too
+# Also include timezone so the agent doesn't get confused across DST changes
 def get_system_prompt():
     with open(os.path.join(script_dir, f'assets/sys_prompt{lang_suffix}.txt'), 'r', encoding='utf-8') as f: prompt = f.read()
-    prompt += f"\nToday: {time.strftime('%Y-%m-%d %a %H:%M')}\n"
+    prompt += f"\nToday: {time.strftime('%Y-%m-%d %a %H:%M %Z')}\n"
     prompt += get_global_memory()
     return prompt
 
@@ -51,5 +52,4 @@ class GeneraticAgent:
         for k, cfg in mykeys.items():
             if not any(x in k for x in ['api', 'config', 'cookie']): continue
             try:
-                if 'native' in k and 'claude' in k: llm_sessions += [NativeToolClient(NativeClaudeSession(cfg=cfg))]
-           
+                if 'native' in k and 'clau
