@@ -18,7 +18,7 @@ Every time GenericAgent solves a new task, it automatically crystallizes the exe
 
 > **🤖 Self-Bootstrap Proof** — Everything in this repository, from installing Git and running `git init` to every commit message, was completed autonomously by GenericAgent. The author never opened a terminal once.
 
-> **Personal fork note**: I'm using this primarily with the Gemini API on Ubuntu. My setup notes are in `docs/personal_setup.md`. I've set `gemini-2.0-flash` as my default model since it's faster and cheaper for most tasks.
+> **Personal fork note**: I'm using this primarily with the Gemini API on Ubuntu. My setup notes are in `docs/personal_setup.md`. I've set `gemini-2.0-flash` as my default model since it's faster and cheaper for most tasks. I also set `max_retries=5` in my config since I occasionally hit rate limits with the free tier.
 
 ## 📋 Core Features
 - **Self-Evolving**: Automatically crystallizes each task into an skill. Capabilities grow with every use, forming your personal skill tree.
@@ -48,6 +48,4 @@ After a few weeks, your agent instance will have a skill tree no one else in the
 
 ##### 🎯 Demo Showcase
 
-| 🧋 Food Delivery Order | 📈 Quantitative Stock Screening |
-|:---:|:---:|
-| <img src="assets/demo/o
+| 🧋 
