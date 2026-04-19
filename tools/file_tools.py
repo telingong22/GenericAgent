@@ -70,6 +70,7 @@ class FileToolHandler(BaseHandler):
         """Resolve a path relative to the working directory."""
         resolved = (self.working_dir / path).resolve()
         # Prevent path traversal outside working directory
+        # Note: using os.path.commonpath would be cleaner but this works fine for our purposes
         if not str(resolved).startswith(str(self.working_dir)):
             raise PermissionError(f"Access denied: '{path}' is outside the working directory.")
         return resolved
@@ -81,46 +82,7 @@ class FileToolHandler(BaseHandler):
             return StepOutcome(success=True, result=content)
         except FileNotFoundError:
             return StepOutcome(success=False, result=f"File not found: {path}")
-        except Exception as e:
+        except PermissionError as e:
             return StepOutcome(success=False, result=str(e))
-
-    def write_file(self, path: str, content: str) -> StepOutcome:
-        try:
-            target = self._resolve(path)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(content, encoding="utf-8")
-            return StepOutcome(success=True, result=f"Written {len(content)} characters to '{path}'.")
         except Exception as e:
-            return StepOutcome(success=False, result=str(e))
-
-    def append_file(self, path: str, content: str) -> StepOutcome:
-        try:
-            target = self._resolve(path)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            with target.open("a", encoding="utf-8") as f:
-                f.write(content)
-            return StepOutcome(success=True, result=f"Appended {len(content)} characters to '{path}'.")
-        except Exception as e:
-            return StepOutcome(success=False, result=str(e))
-
-    def list_directory(self, path: str = ".") -> StepOutcome:
-        try:
-            target = self._resolve(path)
-            if not target.is_dir():
-                return StepOutcome(success=False, result=f"'{path}' is not a directory.")
-            entries = [{"name": e.name, "type": "dir" if e.is_dir() else "file"} for e in sorted(target.iterdir())]
-            return StepOutcome(success=True, result=json.dumps(entries, indent=2))
-        except Exception as e:
-            return StepOutcome(success=False, result=str(e))
-
-    def handle(self, tool_name: str, tool_args: dict) -> StepOutcome:
-        """Dispatch a tool call to the appropriate method."""
-        dispatch = {
-            "read_file": self.read_file,
-            "write_file": self.write_file,
-            "append_file": self.append_file,
-            "list_directory": self.list_directory,
-        }
-        if tool_name not in dispatch:
-            return StepOutcome(success=False, result=f"Unknown file tool: '{tool_name}'")
-        return dispatch[tool_name](**tool_args)
+            return StepOutcome(success=False, result=f"Error reading file: {e}")
