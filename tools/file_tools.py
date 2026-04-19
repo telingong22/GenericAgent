@@ -1,0 +1,126 @@
+"""File system tools for GenericAgent.
+
+Provides read, write, append, and list operations on the local filesystem.
+All paths are resolved relative to a configurable working directory.
+"""
+
+import os
+import json
+from pathlib import Path
+from agent_loop import BaseHandler, StepOutcome
+
+
+FILE_TOOLS_SCHEMA = [
+    {
+        "name": "read_file",
+        "description": "Read the contents of a file at the given path.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "Path to the file to read."}
+            },
+            "required": ["path"]
+        }
+    },
+    {
+        "name": "write_file",
+        "description": "Write content to a file, overwriting if it already exists.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "Path to the file to write."},
+                "content": {"type": "string", "description": "Content to write into the file."}
+            },
+            "required": ["path", "content"]
+        }
+    },
+    {
+        "name": "append_file",
+        "description": "Append content to the end of a file. Creates the file if it does not exist.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "Path to the file to append to."},
+                "content": {"type": "string", "description": "Content to append."}
+            },
+            "required": ["path", "content"]
+        }
+    },
+    {
+        "name": "list_directory",
+        "description": "List files and subdirectories in a directory.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "Directory path to list. Defaults to working directory.", "default": "."}
+            },
+            "required": []
+        }
+    }
+]
+
+
+class FileToolHandler(BaseHandler):
+    """Handles file system tool calls dispatched by the agent loop."""
+
+    def __init__(self, working_dir: str = "."):
+        self.working_dir = Path(working_dir).resolve()
+
+    def _resolve(self, path: str) -> Path:
+        """Resolve a path relative to the working directory."""
+        resolved = (self.working_dir / path).resolve()
+        # Prevent path traversal outside working directory
+        if not str(resolved).startswith(str(self.working_dir)):
+            raise PermissionError(f"Access denied: '{path}' is outside the working directory.")
+        return resolved
+
+    def read_file(self, path: str) -> StepOutcome:
+        try:
+            target = self._resolve(path)
+            content = target.read_text(encoding="utf-8")
+            return StepOutcome(success=True, result=content)
+        except FileNotFoundError:
+            return StepOutcome(success=False, result=f"File not found: {path}")
+        except Exception as e:
+            return StepOutcome(success=False, result=str(e))
+
+    def write_file(self, path: str, content: str) -> StepOutcome:
+        try:
+            target = self._resolve(path)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(content, encoding="utf-8")
+            return StepOutcome(success=True, result=f"Written {len(content)} characters to '{path}'.")
+        except Exception as e:
+            return StepOutcome(success=False, result=str(e))
+
+    def append_file(self, path: str, content: str) -> StepOutcome:
+        try:
+            target = self._resolve(path)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with target.open("a", encoding="utf-8") as f:
+                f.write(content)
+            return StepOutcome(success=True, result=f"Appended {len(content)} characters to '{path}'.")
+        except Exception as e:
+            return StepOutcome(success=False, result=str(e))
+
+    def list_directory(self, path: str = ".") -> StepOutcome:
+        try:
+            target = self._resolve(path)
+            if not target.is_dir():
+                return StepOutcome(success=False, result=f"'{path}' is not a directory.")
+            entries = [{"name": e.name, "type": "dir" if e.is_dir() else "file"} for e in sorted(target.iterdir())]
+            return StepOutcome(success=True, result=json.dumps(entries, indent=2))
+        except Exception as e:
+            return StepOutcome(success=False, result=str(e))
+
+    def handle(self, tool_name: str, tool_args: dict) -> StepOutcome:
+        """Dispatch a tool call to the appropriate method."""
+        dispatch = {
+            "read_file": self.read_file,
+            "write_file": self.write_file,
+            "append_file": self.append_file,
+            "list_directory": self.list_directory,
+        }
+        if tool_name not in dispatch:
+            return StepOutcome(success=False, result=f"Unknown file tool: '{tool_name}'")
+        return dispatch[tool_name](**tool_args)
