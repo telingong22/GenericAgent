@@ -42,13 +42,11 @@ if not os.path.exists(cdp_cfg):
 def get_system_prompt():
     with open(os.path.join(script_dir, f'assets/sys_prompt{lang_suffix}.txt'), 'r', encoding='utf-8') as f: prompt = f.read()
     tz_label = time.strftime('%Z') or time.strftime('%z') or 'UTC'
-    prompt += f"\nToday: {time.strftime('%Y-%m-%d %a %H:%M')} {tz_label}\n"
+    # Use seconds precision in timestamp for better log correlation
+    prompt += f"\nToday: {time.strftime('%Y-%m-%d %a %H:%M:%S')} {tz_label}\n"
     import socket
     prompt += f"Host: {socket.gethostname()}\n"
     prompt += get_global_memory()
     return prompt
 
-class GeneraticAgent:
-    def __init__(self):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        os.makedirs(os.path.join(script_dir, 'temp'), exist_
+class G
