@@ -69,9 +69,10 @@ class FileToolHandler(BaseHandler):
     def _resolve(self, path: str) -> Path:
         """Resolve a path relative to the working directory."""
         resolved = (self.working_dir / path).resolve()
-        # Prevent path traversal outside working directory
-        # Note: using os.path.commonpath would be cleaner but this works fine for our purposes
-        if not str(resolved).startswith(str(self.working_dir)):
+        # Prevent path traversal outside working directory.
+        # Using str.startswith isn't perfect (e.g. /foo vs /foobar) but
+        # adding a trailing separator makes it reliable enough for our use.
+        if not str(resolved).startswith(str(self.working_dir) + os.sep) and resolved != self.working_dir:
             raise PermissionError(f"Access denied: '{path}' is outside the working directory.")
         return resolved
 
@@ -81,8 +82,4 @@ class FileToolHandler(BaseHandler):
             content = target.read_text(encoding="utf-8")
             return StepOutcome(success=True, result=content)
         except FileNotFoundError:
-            return StepOutcome(success=False, result=f"File not found: {path}")
-        except PermissionError as e:
-            return StepOutcome(success=False, result=str(e))
-        except Exception as e:
-            return StepOutcome(success=False, result=f"Error reading file: {e}")
+            return StepOutcome(success=False, result=f"File not found: '{path}'")
