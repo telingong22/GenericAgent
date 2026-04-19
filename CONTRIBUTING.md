@@ -48,3 +48,5 @@ If your skill only makes sense for a specific workflow, it's a marketplace candi
 > **Personal fork note:** I'm using this primarily for local automation experiments. I won't be opening upstream PRs unless I find a genuinely universal improvement.
 >
 > **My local skill experiments:** `skills/local/` — not tracked, gitignored. Mostly home automation and file organization workflows.
+>
+> **Dev notes:** Tracking upstream via `git remote add upstream https://github.com/lsdefine/GenericAgent.git`. Run `git fetch upstream && git merge upstream/main` periodically to stay current.
