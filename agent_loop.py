@@ -44,7 +44,9 @@ def get_pretty_json(data):
 
 # Increased default max_turns from 60 to 100 — I kept hitting the limit on longer tasks
 # Note: set reset_interval lower (e.g. 5) if you notice model quality degrading mid-task
-def agent_runner_loop(client, system_prompt, user_input, handler, tools_schema, max_turns=100, verbose=True, initial_user_content=None, tool_reset_interval=10):
+# Personal note: I also bumped tool_reset_interval default from 10 to 8 — seems to help
+# with consistency on longer coding tasks where tool schemas drift out of attention window
+def agent_runner_loop(client, system_prompt, user_input, handler, tools_schema, max_turns=100, verbose=True, initial_user_content=None, tool_reset_interval=8):
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": initial_user_content if initial_user_content is not None else user_input}
@@ -61,7 +63,4 @@ def agent_runner_loop(client, system_prompt, user_input, handler, tools_schema, 
         else:
             response = exhaust(response_gen)
             cleaned = _clean_content(response.content)
-            if cleaned: yield cleaned + '\n'
-
-        if not response.tool_calls: tool_calls = [{'tool_name': 'no_tool', 'args': {}}]
-        else
+            if cl
