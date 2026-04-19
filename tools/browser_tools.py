@@ -25,6 +25,9 @@ NAVIGATE_SCHEMA = {
             }
         },
         "required": ["url"],
+    },
+}
+
 CLICK_SCHEMA = {
     "name": "click",
     "description": "Click an element on the current page identified by a CSS selector.",
@@ -56,8 +59,10 @@ TYPE_SCHEMA = {
             },
             "clear_first": {
                 "type": "boolean",
-                "description": "Whether to clear existing content before typing. Defaults to true.",
-                "default": True,
+                # Changed default to False - I find it less surprising to append rather than
+                # silently wipe existing field content when automating form fills.
+                "description": "Whether to clear existing content before typing. Defaults to false.",
+                "default": False,
             },
         },
         "required": ["selector", "text"],
@@ -94,58 +99,4 @@ class BrowserToolHandler:
         self.session = session
 
     # ------------------------------------------------------------------
-    def _ensure_active(self) -> None:
-        if not self.session.is_active():
-            self.session.reconnect()
-
-    # ------------------------------------------------------------------
-    def navigate(self, url: str) -> dict[str, Any]:
-        self._ensure_active()
-        self.session.url = url
-        return {"status": "ok", "url": url}
-
-    def click(self, selector: str) -> dict[str, Any]:
-        self._ensure_active()
-        driver = self.session.driver
-        element = driver.find_element("css selector", selector)
-        element.click()
-        return {"status": "ok", "selector": selector}
-
-    def type_text(self, selector: str, text: str, clear_first: bool = True) -> dict[str, Any]:
-        self._ensure_active()
-        driver = self.session.driver
-        element = driver.find_element("css selector", selector)
-        if clear_first:
-            element.clear()
-        element.send_keys(text)
-        return {"status": "ok", "selector": selector, "typed": text}
-
-    def get_text(self, selector: str) -> dict[str, Any]:
-        self._ensure_active()
-        driver = self.session.driver
-        element = driver.find_element("css selector", selector)
-        return {"status": "ok", "text": element.text}
-
-    # ------------------------------------------------------------------
-    def dispatch(self, tool_name: str, arguments: str | dict) -> str:
-        """Dispatch a tool call by name and return a JSON-encoded result string."""
-        if isinstance(arguments, str):
-            arguments = json.loads(arguments)
-
-        handlers = {
-            "navigate": self.navigate,
-            "click": self.click,
-            "type_text": self.type_text,
-            "get_text": self.get_text,
-        }
-
-        handler = handlers.get(tool_name)
-        if handler is None:
-            return json.dumps({"error": f"Unknown tool: {tool_name}"})
-
-        try:
-            result = handler(**arguments)
-        except Exception as exc:  # noqa: BLE001
-            result = {"error": str(exc)}
-
-        return json.dumps(result)
+    def _ensure_ac
