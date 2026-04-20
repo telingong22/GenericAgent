@@ -46,6 +46,7 @@ def get_pretty_json(data):
 # Note: set reset_interval lower (e.g. 5) if you notice model quality degrading mid-task
 # Personal note: I also bumped tool_reset_interval default from 10 to 8 — seems to help
 # with consistency on longer coding tasks where tool schemas drift out of attention window
+# TODO: consider making max_turns a per-task override rather than a global default
 def agent_runner_loop(client, system_prompt, user_input, handler, tools_schema, max_turns=100, verbose=True, initial_user_content=None, tool_reset_interval=8):
     messages = [
         {"role": "system", "content": system_prompt},
@@ -54,13 +55,8 @@ def agent_runner_loop(client, system_prompt, user_input, handler, tools_schema, 
     turn = 0; handler._done_hooks = [];  handler.max_turns = max_turns
     while turn < handler.max_turns:
         turn += 1; md = '**' if verbose else ''
-        yield f"{md}LLM Running (Turn {turn}) ...{md}\n\n"
+        yield f"{md}LLM Running (Turn {turn}/{handler.max_turns}) ...{md}\n\n"
         if turn%tool_reset_interval == 0: client.last_tools = ''  # 每N轮重置一次工具描述，避免上下文过大导致的模型性能下降
         response_gen = client.chat(messages=messages, tools=tools_schema)
         if verbose:
-            response = yield from response_gen
-            yield '\n\n'
-        else:
-            response = exhaust(response_gen)
-            cleaned = _clean_content(response.content)
-            if cl
+            response = yi
