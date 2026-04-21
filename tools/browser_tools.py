@@ -84,8 +84,26 @@ GET_TEXT_SCHEMA = {
     },
 }
 
+SCROLL_SCHEMA = {
+    "name": "scroll",
+    "description": "Scroll the page by a given number of pixels vertically.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "pixels": {
+                "type": "integer",
+                # Positive scrolls down, negative scrolls up. 500px feels like a natural
+                # 'one screenful' scroll for most desktop viewports.
+                "description": "Number of pixels to scroll. Positive = down, negative = up.",
+                "default": 500,
+            }
+        },
+        "required": [],
+    },
+}
+
 # All schemas exported for registration
-ALL_SCHEMAS = [NAVIGATE_SCHEMA, CLICK_SCHEMA, TYPE_SCHEMA, GET_TEXT_SCHEMA]
+ALL_SCHEMAS = [NAVIGATE_SCHEMA, CLICK_SCHEMA, TYPE_SCHEMA, GET_TEXT_SCHEMA, SCROLL_SCHEMA]
 
 
 # ---------------------------------------------------------------------------
@@ -93,10 +111,4 @@ ALL_SCHEMAS = [NAVIGATE_SCHEMA, CLICK_SCHEMA, TYPE_SCHEMA, GET_TEXT_SCHEMA]
 # ---------------------------------------------------------------------------
 
 class BrowserToolHandler:
-    """Handles execution of browser tool calls against an active Session."""
-
-    def __init__(self, session: Session) -> None:
-        self.session = session
-
-    # ------------------------------------------------------------------
-    def _ensure_ac
+    """Handles execution of browser tool calls against an activ
