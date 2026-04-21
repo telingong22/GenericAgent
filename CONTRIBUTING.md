@@ -50,3 +50,5 @@ If your skill only makes sense for a specific workflow, it's a marketplace candi
 > **My local skill experiments:** `skills/local/` — not tracked, gitignored. Mostly home automation and file organization workflows.
 >
 > **Dev notes:** Tracking upstream via `git remote add upstream https://github.com/lsdefine/GenericAgent.git`. Run `git fetch upstream && git merge upstream/main` periodically to stay current.
+>
+> **Upstream sync log:** Last synced 2025-06-10. Diverged on `skills/local/` only — no conflicts expected on next merge.
